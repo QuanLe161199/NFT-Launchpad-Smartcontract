@@ -193,7 +193,6 @@ contract ERC721I is IERC721I, ERC721AQueryable, Ownable, ReentrancyGuard {
         return (_mintStages[index], walletMinted, stageMinted);
     }
 
-    ///
     function updateStage(
         uint256 index,
         uint80 price,
