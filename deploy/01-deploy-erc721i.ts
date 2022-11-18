@@ -10,7 +10,7 @@ import verify from "../utils/verify"
 const deployERC721I: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const { deployments, getNamedAccounts, network } = hre
     const { deploy, log } = deployments
-    const { deployer } = await getNamedAccounts()
+    const { owner } = await getNamedAccounts()
     const waitBlockConfirmations = developmentChains.includes(network.name)
         ? 1
         : VERIFICATION_BLOCK_CONFIRMATIONS
@@ -18,7 +18,7 @@ const deployERC721I: DeployFunction = async (hre: HardhatRuntimeEnvironment) => 
     log("----------------------------------------------------------------------------")
 
     const miaswap = await deploy("ERC721I", {
-        from: deployer,
+        from: owner,
         args: constructorArguments,
         log: true,
         waitConfirmations: waitBlockConfirmations,

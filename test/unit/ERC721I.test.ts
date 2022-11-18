@@ -12,7 +12,7 @@ import merkleTree from "../../utils/merkleTree"
           let erc721I: ERC721I
           let accounts: SignerWithAddress[]
           let whitelistAddresses: string[] = new Array(10)
-          let deployer: SignerWithAddress
+          let owner: SignerWithAddress
           let attacker: SignerWithAddress
           let user: SignerWithAddress
           let cosigner: SignerWithAddress
@@ -23,15 +23,11 @@ import merkleTree from "../../utils/merkleTree"
               for (let i = 0; i < whitelistAddresses.length; i++) {
                   whitelistAddresses[i] = accounts[i].address
               }
-              deployer = accounts[0]
-              attacker = accounts[1]
-              user = accounts[2]
-              cosigner = accounts[3]
-              crossmintAccount = accounts[4]
+              ;[owner, attacker, user, cosigner, crossmintAccount] = accounts
 
               // deploys the contract
               await deployments.fixture(["erc721i"])
-              erc721I = await ethers.getContract("ERC721I", deployer)
+              erc721I = await ethers.getContract("ERC721I", owner)
           })
 
           describe("constructor", () => {
@@ -191,7 +187,12 @@ import merkleTree from "../../utils/merkleTree"
           describe("After sets the stages...", () => {
               let rootHash: string
               let stages: any[]
+              let timestamp: number
               beforeEach(async () => {
+                  // gets the timestamp of the current block
+                  const blockNumber = await ethers.provider.getBlockNumber()
+                  timestamp = (await ethers.provider.getBlock(blockNumber)).timestamp
+
                   rootHash = merkleTree(whitelistAddresses, accounts[0].address).rootHash
                   stages = [
                       [
@@ -199,19 +200,18 @@ import merkleTree from "../../utils/merkleTree"
                           2,
                           rootHash,
                           (Number(constructorArguments[3]) * 20) / 100,
-                          0,
-                          10,
+                          timestamp,
+                          parseInt(((timestamp * 110) / 100).toString()),
                       ],
                       [
                           ethers.utils.parseEther("1"),
                           2,
                           rootHash,
                           (Number(constructorArguments[3]) * 80) / 100,
-                          70,
-                          75,
+                          parseInt(((timestamp * 150) / 100).toString()),
+                          parseInt(((timestamp * 170) / 100).toString()),
                       ],
                   ]
-
                   await erc721I.setStages(stages)
               })
 
@@ -492,7 +492,7 @@ import merkleTree from "../../utils/merkleTree"
                       mintArguments = [
                           (await erc721I.getStageInfo(0))[0][1],
                           hexProof,
-                          10,
+                          10000000,
                           "0x0000000000000000000000000000000000000000000000000000000000000000",
                       ]
                       const price = (await erc721I.getStageInfo(0))[0][0]
@@ -557,9 +557,131 @@ import merkleTree from "../../utils/merkleTree"
                   })
                   describe("If the smart contract has cosigner...", () => {
                       beforeEach(async () => {
+                          // get the timestamp argument
+                          mintArguments[2] = (await erc721I.getStageInfo(0))[0][5]
+
+                          // get signature
                           await erc721I.setCosigner(cosigner.address)
+                          const message = ethers.utils.solidityKeccak256(
+                              ["bytes"],
+                              [
+                                  ethers.utils.solidityPack(
+                                      [
+                                          "address",
+                                          "address",
+                                          "uint32",
+                                          "address",
+                                          "uint64",
+                                          "uint256",
+                                          "uint256",
+                                      ],
+                                      [
+                                          erc721I.address,
+                                          user.address,
+                                          mintArguments[0],
+                                          cosigner.address,
+                                          mintArguments[2],
+                                          31337,
+                                          await erc721I.getCosignNonce(user.address),
+                                      ]
+                                  ),
+                              ]
+                          )
+                          mintArguments[3] = await cosigner.signMessage(
+                              ethers.utils.arrayify(message)
+                          )
                       })
-                      /// CHECK
+                      it("reverts when signature doesn't match input data", async () => {
+                          // the sender doesn't match
+                          await expect(
+                              erc721I
+                                  .connect(attacker)
+                                  .mint(
+                                      mintArguments[0],
+                                      mintArguments[1],
+                                      mintArguments[2],
+                                      mintArguments[3],
+                                      { value: value }
+                                  )
+                          ).to.be.revertedWith("InvalidCosignSignature()")
+
+                          // the qty doesn't match
+                          await expect(
+                              erc721I
+                                  .connect(user)
+                                  .mint(
+                                      mintArguments[0] + 1,
+                                      mintArguments[1],
+                                      mintArguments[2],
+                                      mintArguments[3],
+                                      { value: value }
+                                  )
+                          ).to.be.revertedWith("InvalidCosignSignature()")
+
+                          // the timestamp doesn't match
+                          await expect(
+                              erc721I
+                                  .connect(user)
+                                  .mint(
+                                      mintArguments[0],
+                                      mintArguments[1],
+                                      mintArguments[2] + 1,
+                                      mintArguments[3],
+                                      { value: value }
+                                  )
+                          ).to.be.revertedWith("InvalidCosignSignature()")
+                      })
+                      it("reverts when the timestamp is invalid", async () => {
+                          // calculates the invalid timestamp
+                          const currentBlockTimestamp = (
+                              await ethers.provider.getBlock(await ethers.provider.getBlockNumber())
+                          ).timestamp
+                          const invalidTimestamp =
+                              currentBlockTimestamp -
+                              Number(await erc721I.CROSSMINT_TIMESTAMP_EXPIRY_SECONDS())
+
+                          // calculates the new signature
+                          const message = ethers.utils.solidityKeccak256(
+                              ["bytes"],
+                              [
+                                  ethers.utils.solidityPack(
+                                      [
+                                          "address",
+                                          "address",
+                                          "uint32",
+                                          "address",
+                                          "uint64",
+                                          "uint256",
+                                          "uint256",
+                                      ],
+                                      [
+                                          erc721I.address,
+                                          user.address,
+                                          mintArguments[0],
+                                          cosigner.address,
+                                          invalidTimestamp,
+                                          31337,
+                                          await erc721I.getCosignNonce(user.address),
+                                      ]
+                                  ),
+                              ]
+                          )
+                          const newSignature = await cosigner.signMessage(
+                              ethers.utils.arrayify(message)
+                          )
+
+                          await expect(
+                              erc721I
+                                  .connect(user)
+                                  .mint(
+                                      mintArguments[0],
+                                      mintArguments[1],
+                                      invalidTimestamp,
+                                      newSignature,
+                                      { value: value }
+                                  )
+                          ).to.be.revertedWith("TimestampExpired()")
+                      })
                   })
                   it("reverts when the user sent not enough ETH", async () => {
                       await expect(
@@ -689,7 +811,7 @@ import merkleTree from "../../utils/merkleTree"
                           (await erc721I.getStageInfo(0))[0][1],
                           user.address,
                           hexProof,
-                          10,
+                          0,
                           "0x0000000000000000000000000000000000000000000000000000000000000000",
                       ]
                       const price = (await erc721I.getStageInfo(0))[0][0]
@@ -784,6 +906,138 @@ import merkleTree from "../../utils/merkleTree"
                       for (let i = 0; i < qty; i++) {
                           assert.equal(user.address, await erc721I.ownerOf(i))
                       }
+                  })
+              })
+
+              describe("withdraw", () => {
+                  let value: any
+                  beforeEach(async () => {
+                      // sets mintable state is true
+                      await erc721I.setMintable(true)
+
+                      const currentStage = (await erc721I.getStageInfo(0))[0]
+                      value = currentStage[0].mul(currentStage[1])
+                      await erc721I
+                          .connect(user)
+                          .mint(
+                              currentStage[1],
+                              merkleTree(whitelistAddresses, user.address).hexProof,
+                              0,
+                              "0x0000000000000000000000000000000000000000000000000000000000000000",
+                              {
+                                  value: value,
+                              }
+                          )
+                  })
+
+                  it("reverts when the caller isn't the owner", async () => {
+                      await expect(erc721I.connect(attacker).withdraw()).to.be.revertedWith(
+                          "Ownable: caller is not the owner"
+                      )
+                  })
+                  it("emits an event after withdrawing", async () => {
+                      await expect(erc721I.withdraw()).to.emit(erc721I, "Withdraw")
+                  })
+                  it("withdraws successfully", async () => {
+                      const ownerBalance = await ethers.provider.getBalance(owner.address)
+                      const txResponse = await erc721I.withdraw()
+
+                      const transactionReceipt = await txResponse.wait(1)
+                      const withdrawEvent =
+                          transactionReceipt.events![transactionReceipt.events!.length - 1].args
+                      assert.equal(value.toString(), withdrawEvent!.value.toString())
+
+                      // checks owner balance
+                      const newOwnerBalance = await ethers.provider.getBalance(owner.address)
+                      const gasCost = transactionReceipt.gasUsed.mul(
+                          transactionReceipt.effectiveGasPrice
+                      )
+                      assert.equal(
+                          ownerBalance.add(value).sub(gasCost).toString(),
+                          newOwnerBalance.toString()
+                      )
+                  })
+              })
+
+              describe("setBaseURI", () => {
+                  let newBaseURI = "example-uri/"
+
+                  it("reverts when the caller isn't the owner", async () => {
+                      await expect(
+                          erc721I.connect(attacker).setBaseURI(newBaseURI)
+                      ).to.be.revertedWith("Ownable: caller is not the owner")
+                  })
+                  it("reverts when base URI set permanently", async () => {
+                      await erc721I.setBaseURIPermanent()
+                      await expect(erc721I.setBaseURI(newBaseURI)).to.be.revertedWith(
+                          "CannotUpdatePermanentBaseURI()"
+                      )
+                  })
+                  it("emits an event after setting a new base URI", async () => {
+                      await expect(erc721I.setBaseURI(newBaseURI)).to.emit(erc721I, "SetBaseURI")
+                  })
+                  it("sets a new base URI successfully", async () => {
+                      const txResponse = await erc721I.setBaseURI(newBaseURI)
+
+                      const transactionReceipt = await txResponse.wait(1)
+                      const setBaseURIEvent =
+                          transactionReceipt.events![transactionReceipt.events!.length - 1].args
+                      assert.equal(newBaseURI, setBaseURIEvent!.baseURI)
+
+                      // checks a token URI
+                      await erc721I.setMintable(true)
+                      const currentStage = (await erc721I.getStageInfo(0))[0]
+                      const value = currentStage[0].mul(currentStage[1])
+                      await erc721I
+                          .connect(user)
+                          .mint(
+                              currentStage[1],
+                              merkleTree(whitelistAddresses, user.address).hexProof,
+                              0,
+                              "0x0000000000000000000000000000000000000000000000000000000000000000",
+                              {
+                                  value: value,
+                              }
+                          )
+                      assert.equal(
+                          newBaseURI + "0" + (await erc721I.getTokenURISuffix()),
+                          await erc721I.tokenURI(0)
+                      )
+                  })
+              })
+
+              describe("setBaseURIPermanent", async () => {
+                  it("reverts when the caller isn't the owner", async () => {
+                      await expect(
+                          erc721I.connect(attacker).setBaseURIPermanent()
+                      ).to.be.revertedWith("Ownable: caller is not the owner")
+                  })
+                  it("emits an event after sets base URI permanently", async () => {
+                      await expect(erc721I.setBaseURIPermanent()).to.emit(
+                          erc721I,
+                          "PermanentBaseURI"
+                      )
+                  })
+                  it("sets base URI to permanent state successfully", async () => {
+                      await erc721I.setBaseURIPermanent()
+                      await expect(erc721I.setBaseURI("example-uri/")).to.be.revertedWith(
+                          "CannotUpdatePermanentBaseURI()"
+                      )
+                  })
+              })
+
+              describe("setTokenURISuffix", () => {
+                  const newTokenURISuffix = ".doc"
+
+                  it("reverts when the caller isn't the owner", async () => {
+                      await expect(
+                          erc721I.connect(attacker).setTokenURISuffix(newTokenURISuffix)
+                      ).to.be.revertedWith("Ownable: caller is not the owner")
+                  })
+                  it("sets a new token URI suffix successfully", async () => {
+                      await erc721I.setTokenURISuffix(newTokenURISuffix)
+
+                      assert.equal(newTokenURISuffix, await erc721I.getTokenURISuffix())
                   })
               })
           })

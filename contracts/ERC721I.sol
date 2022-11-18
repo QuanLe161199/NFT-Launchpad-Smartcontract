@@ -386,6 +386,27 @@ contract ERC721I is IERC721I, ERC721AQueryable, Ownable, ReentrancyGuard {
         ) revert InvalidCosignSignature();
     }
 
+    function getCosignDigestTest(address addr, uint256 num) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(addr, num)).toEthSignedMessageHash();
+    }
+
+    function assertValidCosignTest(uint256 num, bytes memory signature)
+        external
+        view
+        returns (bool)
+    {
+        return
+            SignatureChecker.isValidSignatureNow(
+                msg.sender,
+                getCosignDigestTest(msg.sender, num),
+                signature
+            );
+    }
+
+    function checkSignature(bytes32 hashTest, bytes memory signature) external view returns (bool) {
+        return SignatureChecker.isValidSignatureNow(msg.sender, hashTest, signature);
+    }
+
     function getActiveStageFromTimestamp(uint64 timestamp) public view override returns (uint256) {
         for (uint256 i = 0; i < _mintStages.length; i++) {
             if (
