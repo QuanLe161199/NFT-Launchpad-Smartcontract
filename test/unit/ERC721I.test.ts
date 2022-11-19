@@ -566,7 +566,7 @@ import merkleTree from "../../utils/merkleTree"
                   describe("If the smart contract has cosigner...", () => {
                       beforeEach(async () => {
                           // get the timestamp argument
-                          mintArguments[2] = (await erc721I.getStageInfo(0))[0][5]
+                          mintArguments[2] = Number((await erc721I.getStageInfo(0))[0][5]) - 1
 
                           // get signature
                           await erc721I.setCosigner(cosigner.address)
@@ -689,6 +689,33 @@ import merkleTree from "../../utils/merkleTree"
                                       { value: value }
                                   )
                           ).to.be.revertedWith("TimestampExpired()")
+                      })
+                      it("mints NFTs successfully", async () => {
+                          await erc721I
+                              .connect(user)
+                              .mint(
+                                  mintArguments[0],
+                                  mintArguments[1],
+                                  mintArguments[2],
+                                  mintArguments[3],
+                                  {
+                                      value: value,
+                                  }
+                              )
+
+                          //   const stageInfo = await erc721I.connect(user).getStageInfo(0)
+                          //   const walletMinted = stageInfo[1]
+                          //   const stageMinted = stageInfo[2]
+                          //   assert.equal(mintArguments[0].toString(), walletMinted.toString())
+                          //   assert.equal(mintArguments[0].toString(), stageMinted.toString())
+                          //   assert.equal(
+                          //       mintArguments[0].toString(),
+                          //       (await erc721I.totalSupply()).toString()
+                          //   )
+
+                          //   for (let i = 0; i < mintArguments[0]; i++) {
+                          //       assert.equal(user.address, await erc721I.ownerOf(i))
+                          //   }
                       })
                   })
                   it("reverts when the user sent not enough ETH", async () => {
