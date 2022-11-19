@@ -351,7 +351,15 @@ import merkleTree from "../../utils/merkleTree"
               describe("updateStage", () => {
                   let newStage: any[]
                   beforeEach(() => {
-                      newStage = [1, ethers.utils.parseEther("2"), 3, rootHash, 5, 80, 85]
+                      newStage = [
+                          1,
+                          ethers.utils.parseEther("2"),
+                          3,
+                          rootHash,
+                          5,
+                          parseInt(((timestamp * 160) / 100).toString()),
+                          parseInt(((timestamp * 180) / 100).toString()),
+                      ]
                   })
 
                   it("reverts when the caller isn't the owner", async () => {
@@ -376,8 +384,8 @@ import merkleTree from "../../utils/merkleTree"
                           3,
                           rootHash,
                           5,
-                          0,
-                          5,
+                          parseInt(((timestamp * 160) / 100).toString()),
+                          parseInt(((timestamp * 180) / 100).toString()),
                       ]
 
                       await expect(
@@ -399,8 +407,8 @@ import merkleTree from "../../utils/merkleTree"
                           3,
                           rootHash,
                           5,
-                          0,
-                          5,
+                          parseInt(((timestamp * 110) / 100).toString()),
+                          parseInt(((timestamp * 180) / 100).toString()),
                       ]
                       await expect(
                           erc721I.updateStage(
@@ -421,8 +429,8 @@ import merkleTree from "../../utils/merkleTree"
                           3,
                           rootHash,
                           5,
-                          70,
-                          60,
+                          parseInt(((timestamp * 150) / 100).toString()),
+                          parseInt(((timestamp * 149) / 100).toString()),
                       ]
                       await expect(
                           erc721I.updateStage(
