@@ -1,13 +1,10 @@
-import {
-    erc721IArguments,
-    developmentChains,
-    VERIFICATION_BLOCK_CONFIRMATIONS,
-} from "../helper-hardhat-config"
+import bucketAuctionArguments from "../helper-hardhat-config"
+import { developmentChains, VERIFICATION_BLOCK_CONFIRMATIONS } from "../helper-hardhat-config"
 import { DeployFunction } from "hardhat-deploy/dist/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
 import verify from "../utils/verify"
 
-const deployERC721I: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
+const deployBucketAuction: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const { deployments, getNamedAccounts, network } = hre
     const { deploy, log } = deployments
     const { owner } = await getNamedAccounts()
@@ -15,11 +12,13 @@ const deployERC721I: DeployFunction = async (hre: HardhatRuntimeEnvironment) => 
         ? 1
         : VERIFICATION_BLOCK_CONFIRMATIONS
 
+    const args = await bucketAuctionArguments()
+
     log("----------------------------------------------------------------------------")
 
-    const erc721I = await deploy("ERC721I", {
+    const bucketAuction = await deploy("BucketAuction", {
         from: owner,
-        args: erc721IArguments,
+        args: args,
         log: true,
         waitConfirmations: waitBlockConfirmations,
     })
@@ -27,9 +26,9 @@ const deployERC721I: DeployFunction = async (hre: HardhatRuntimeEnvironment) => 
     // Verify the deployment
     if (!developmentChains.includes(network.name) && process.env.ETHERSCAN_API_KEY) {
         log("Verifying...")
-        await verify(erc721I.address, erc721IArguments)
+        await verify(bucketAuction.address, args)
     }
 }
 
-export default deployERC721I
-deployERC721I.tags = ["all", "erc721i"]
+export default deployBucketAuction
+deployBucketAuction.tags = ["all", "bucket-auction"]

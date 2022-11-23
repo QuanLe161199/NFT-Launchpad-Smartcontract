@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "erc721a/contracts/extensions/ERC721AQueryable.sol";
-import "./IERC721I.sol";
+import "./interfaces/IERC721I.sol";
 
 contract ERC721I is IERC721I, ERC721AQueryable, Ownable, ReentrancyGuard {
     using ECDSA for bytes32;

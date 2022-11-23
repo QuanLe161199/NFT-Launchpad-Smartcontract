@@ -1,6 +1,6 @@
 import { assert, expect } from "chai"
 import { ERC721I } from "./../../typechain-types/contracts/ERC721I"
-import { constructorArguments, developmentChains } from "../../helper-hardhat-config"
+import { erc721IArguments, developmentChains } from "../../helper-hardhat-config"
 import { network, deployments, ethers } from "hardhat"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { BigNumber } from "ethers"
@@ -31,7 +31,7 @@ import merkleTree from "../../utils/merkleTree"
           })
 
           describe("constructor", () => {
-              it("initializers the miaswap correctly", async () => {
+              it("initializers the ERC721I correctly", async () => {
                   const collectionName = await erc721I.name()
                   const collectionSymbol = await erc721I.symbol()
                   const mintable = await erc721I.getMintable()
@@ -40,13 +40,13 @@ import merkleTree from "../../utils/merkleTree"
                   const globalWalletLimit = await erc721I.getGlobalWalletLimit()
                   const cosigner = await erc721I.getCosigner()
 
-                  assert.equal(collectionName, constructorArguments[0])
-                  assert.equal(collectionSymbol, constructorArguments[1])
+                  assert.equal(collectionName, erc721IArguments[0])
+                  assert.equal(collectionSymbol, erc721IArguments[1])
                   assert.equal(mintable, false)
-                  assert.equal(tokenURISuffix, constructorArguments[2])
-                  assert.equal(maxMintableSupply.toString(), constructorArguments[3])
-                  assert.equal(globalWalletLimit.toString(), constructorArguments[4])
-                  assert.equal(cosigner, constructorArguments[5])
+                  assert.equal(tokenURISuffix, erc721IArguments[2])
+                  assert.equal(maxMintableSupply.toString(), erc721IArguments[3])
+                  assert.equal(globalWalletLimit.toString(), erc721IArguments[4])
+                  assert.equal(cosigner, erc721IArguments[5])
               })
           })
 
@@ -199,7 +199,7 @@ import merkleTree from "../../utils/merkleTree"
                           ethers.utils.parseEther("1"),
                           2,
                           rootHash,
-                          (Number(constructorArguments[3]) * 20) / 100,
+                          (Number(erc721IArguments[3]) * 20) / 100,
                           timestamp,
                           parseInt(((timestamp * 110) / 100).toString()),
                       ],
@@ -207,7 +207,7 @@ import merkleTree from "../../utils/merkleTree"
                           ethers.utils.parseEther("1"),
                           2,
                           rootHash,
-                          (Number(constructorArguments[3]) * 80) / 100,
+                          (Number(erc721IArguments[3]) * 80) / 100,
                           parseInt(((timestamp * 150) / 100).toString()),
                           parseInt(((timestamp * 170) / 100).toString()),
                       ],
@@ -243,7 +243,7 @@ import merkleTree from "../../utils/merkleTree"
               describe("setMaxMintableSupply", () => {
                   let newMaxMintableSupply: number
                   beforeEach(() => {
-                      newMaxMintableSupply = (Number(constructorArguments[3]) * 90) / 100
+                      newMaxMintableSupply = (Number(erc721IArguments[3]) * 90) / 100
                   })
 
                   it("reverts when the caller isn't the owner", async () => {
@@ -252,7 +252,7 @@ import merkleTree from "../../utils/merkleTree"
                       ).to.be.revertedWith("Ownable: caller is not the owner")
                   })
                   it("reverts when the new index is greater than the old index", async () => {
-                      const invalidMintableSupply = Number(constructorArguments[3]) + 1
+                      const invalidMintableSupply = Number(erc721IArguments[3]) + 1
                       await expect(
                           erc721I.setMaxMintableSupply(invalidMintableSupply)
                       ).to.be.revertedWith("CannotIncreaseMaxMintableSupply()")
@@ -286,7 +286,7 @@ import merkleTree from "../../utils/merkleTree"
               describe("setGlobalWalletLimit", () => {
                   let newGlobalWalletLimit: number
                   beforeEach(() => {
-                      newGlobalWalletLimit = Number(constructorArguments[4]) + 1
+                      newGlobalWalletLimit = Number(erc721IArguments[4]) + 1
                   })
 
                   it("reverts when the caller isn't the owner", async () => {
@@ -295,7 +295,7 @@ import merkleTree from "../../utils/merkleTree"
                       ).to.be.revertedWith("Ownable: caller is not the owner")
                   })
                   it("reverts when new global wallet limit index is greater than max mintable supply index", async () => {
-                      const invalidGlobalWalletLimit = Number(constructorArguments[3]) + 1
+                      const invalidGlobalWalletLimit = Number(erc721IArguments[3]) + 1
                       await expect(
                           erc721I.setGlobalWalletLimit(invalidGlobalWalletLimit)
                       ).to.be.revertedWith("GlobalWalletLimitOverflow()")
@@ -919,7 +919,7 @@ import merkleTree from "../../utils/merkleTree"
               describe("ownerMint", async () => {
                   let qty: number
                   beforeEach(() => {
-                      qty = Number(constructorArguments[3]) / 100
+                      qty = Number(erc721IArguments[3]) / 100
                   })
 
                   it("reverts when the caller isn't the owner", async () => {
