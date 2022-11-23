@@ -393,7 +393,7 @@ import { network, deployments, ethers } from "hardhat"
                           "PriceNotSet()"
                       )
                   })
-                  it("sends refund to user successfully", async () => {
+                  it("successfully sends bidding balance to user", async () => {
                       const userBalance = await ethers.provider.getBalance(user.address)
 
                       await bucketAuction.sendRefund(user.address)
@@ -421,13 +421,13 @@ import { network, deployments, ethers } from "hardhat"
                   })
               })
 
-              describe("sendRefundBatch", async () => {
+              describe("sendRefundBatch: calls sendRefund method multiple times", async () => {
                   it("reverts when the caller isn't the owner", async () => {
                       await expect(
                           bucketAuction.connect(attacker).sendRefundBatch(addresses)
                       ).to.be.revertedWith("Ownable: caller is not the owner")
                   })
-                  it("sends refund batch successfully", async () => {
+                  it("successfully sends bidding balance to users", async () => {
                       let userBalances = new Array()
                       for (let i = 0; i < numberOfUsers; i++) {
                           userBalances.push(await ethers.provider.getBalance(accounts[i].address))
@@ -452,6 +452,7 @@ import { network, deployments, ethers } from "hardhat"
                               true
                           )
                           if (i == 0) {
+                              // 0 account is the owner, it loses gas fees due to having to make the transaction
                               assert.equal(
                                   newUserBalance.toString(),
                                   userBalances[i].sub(gasCost).add(refundValue).toString()
@@ -472,7 +473,7 @@ import { network, deployments, ethers } from "hardhat"
                           bucketAuction.connect(attacker).sendTokensBatch(addresses)
                       ).to.be.revertedWith("Ownable: caller is not the owner")
                   })
-                  it("sends tokens batch successfully", async () => {
+                  it("successfully sends tokens to users", async () => {
                       await bucketAuction.sendTokensBatch(addresses)
 
                       for (let i = 0; i < numberOfUsers; i++) {
@@ -504,14 +505,113 @@ import { network, deployments, ethers } from "hardhat"
                           bucketAuction.sendTokensAndRefund(user.address)
                       ).to.be.revertedWith("PriceNotSet()")
                   })
-                  it("reverts when the user has received the tokens", async () => {})
                   it("reverts when the user has received the bidding balance", async () => {
+                      // sends bidding balance to user
+                      await bucketAuction.sendRefund(user.address)
+
+                      await expect(
+                          bucketAuction.sendTokensAndRefund(user.address)
+                      ).to.be.revertedWith("UserAlreadyClaimed()")
+                  })
+                  it("reverts when the user has received the tokens", async () => {
                       // sends a token to user
                       await bucketAuction.sendTokens(user.address, 1)
 
                       await expect(
                           bucketAuction.sendTokensAndRefund(user.address)
                       ).to.be.revertedWith("AlreadySentTokensToUser()")
+                  })
+                  it("reverts when the number of tokens exceeds the maximum mintable supply", async () => {
+                      // sets the maximum mintable supply
+                      await bucketAuction.setMaxMintableSupply(numberOfTokens - 1)
+
+                      await expect(
+                          bucketAuction.sendTokensAndRefund(user.address)
+                      ).to.be.revertedWith("NoSupplyLeft()")
+                  })
+                  it("successfully sends tokens and refunds bidding balance to user", async () => {
+                      const userBalance = await ethers.provider.getBalance(user.address)
+
+                      await bucketAuction.sendTokensAndRefund(user.address)
+
+                      const newUserBalance = await ethers.provider.getBalance(user.address)
+                      const userData = await bucketAuction.getUserData(user.address)
+
+                      assert.equal(userData[1].toString(), numberOfTokens.toString())
+                      assert.equal(
+                          userData[1].toString(),
+                          userData[0].div(await bucketAuction.getPrice()).toString()
+                      )
+                      assert.equal(userData[2], true)
+                      assert.equal(
+                          newUserBalance.toString(),
+                          userBalance
+                              .add(userData[0].mod(await bucketAuction.getPrice()))
+                              .toString()
+                      )
+                      for (let i = 0; i < numberOfTokens; i++) {
+                          assert.equal(user.address, await bucketAuction.ownerOf(i))
+                      }
+                  })
+              })
+
+              describe("sendTokensAndRefundBatch: calls sendTokensAndRefund method multiple times", async () => {
+                  it("reverts when the caller isn't the owner", async () => {
+                      await expect(
+                          bucketAuction.connect(attacker).sendTokensAndRefundBatch(addresses)
+                      ).to.be.revertedWith("Ownable: caller is not the owner")
+                  })
+                  it("successfully sends tokens and refunds bidding balance to users", async () => {
+                      let userBalances = new Array()
+                      for (let i = 0; i < numberOfUsers; i++) {
+                          userBalances.push(await ethers.provider.getBalance(accounts[i].address))
+                      }
+
+                      const txResponse = await bucketAuction.sendTokensAndRefundBatch(addresses)
+
+                      for (let i = 0; i < numberOfUsers; i++) {
+                          const newUserBalance = await ethers.provider.getBalance(
+                              accounts[i].address
+                          )
+                          const userData = await bucketAuction.getUserData(accounts[i].address)
+
+                          assert.equal(userData[1].toString(), numberOfTokens.toString())
+                          assert.equal(
+                              userData[1].toString(),
+                              userData[0].div(await bucketAuction.getPrice()).toString()
+                          )
+                          assert.equal(userData[2], true)
+
+                          if (i == 0) {
+                              // 0 account is the owner, it loses gas fees due to having to make the transaction
+                              const transactionReceipt = await txResponse.wait(1)
+                              const gasCost = transactionReceipt.gasUsed.mul(
+                                  transactionReceipt.effectiveGasPrice
+                              )
+
+                              assert.equal(
+                                  newUserBalance.toString(),
+                                  userBalances[i]
+                                      .sub(gasCost)
+                                      .add(userData[0].mod(await bucketAuction.getPrice()))
+                                      .toString()
+                              )
+                          } else {
+                              assert.equal(
+                                  newUserBalance.toString(),
+                                  userBalances[i]
+                                      .add(userData[0].mod(await bucketAuction.getPrice()))
+                                      .toString()
+                              )
+                          }
+
+                          for (let j = 0; j < numberOfTokens; j++) {
+                              assert.equal(
+                                  accounts[i].address,
+                                  await bucketAuction.ownerOf(i * numberOfTokens + j)
+                              )
+                          }
+                      }
                   })
               })
           })
