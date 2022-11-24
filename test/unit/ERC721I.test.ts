@@ -1,5 +1,5 @@
 import { assert, expect } from "chai"
-import { ERC721I } from "./../../typechain-types/contracts/ERC721I"
+import { ERC721I } from "./../../typechain-types/contracts"
 import { erc721IArguments, developmentChains } from "../../helper-hardhat-config"
 import { network, deployments, ethers } from "hardhat"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
@@ -31,7 +31,7 @@ import merkleTree from "../../utils/merkleTree"
           })
 
           describe("constructor", () => {
-              it("initializers the ERC721I correctly", async () => {
+              it("initializers the ERC721I contract correctly", async () => {
                   const collectionName = await erc721I.name()
                   const collectionSymbol = await erc721I.symbol()
                   const mintable = await erc721I.getMintable()
@@ -945,7 +945,7 @@ import merkleTree from "../../utils/merkleTree"
               })
 
               describe("withdraw", () => {
-                  let value: any
+                  let value: BigNumber
                   beforeEach(async () => {
                       // sets mintable state is true
                       await erc721I.setMintable(true)

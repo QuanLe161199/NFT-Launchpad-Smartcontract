@@ -54,7 +54,7 @@ contract StakedBucketAuction is IStakingProvider, BucketAuction {
     }
 
     //nonpayable - public
-    function claimTokens(uint16[] calldata tokenIds, bool restake) external {
+    function claimTokens(uint16[] calldata tokenIds, bool reStake) external {
         if (tokenIds.length == 0) revert NoTokensSpecified();
 
         uint256 length = tokenIds.length;
@@ -75,11 +75,11 @@ contract StakedBucketAuction is IStakingProvider, BucketAuction {
                 claims[i] = StakeSummary(stake.total, stake.total + accrued, tokenId);
 
                 //effects
-                stakes[tokenId] = StakeData(restake ? time : 1, stake.total + accrued);
+                stakes[tokenId] = StakeData(reStake ? time : 1, stake.total + accrued);
 
                 emit StakeClaimed(tokenId, time, accrued);
 
-                if (!restake) emit TokenUnstaked(tokenId, time);
+                if (!reStake) emit TokenUnstaked(tokenId, time);
             }
         }
 

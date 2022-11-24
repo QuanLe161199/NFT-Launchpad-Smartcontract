@@ -1,5 +1,5 @@
 import { assert, expect } from "chai"
-import { BucketAuction } from "./../../typechain-types/contracts/BucketAuction"
+import { BucketAuction } from "./../../typechain-types/contracts"
 import { developmentChains } from "../../helper-hardhat-config"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import bucketAuctionArguments from "../../helper-hardhat-config"
@@ -27,7 +27,7 @@ import { network, deployments, ethers } from "hardhat"
           })
 
           describe("constructor", () => {
-              it("initializers the Bucket Auction correctly", async () => {
+              it("initializers the Bucket Auction contract correctly", async () => {
                   const collectionName = await bucketAuction.name()
                   const collectionSymbol = await bucketAuction.symbol()
                   const mintable = await bucketAuction.getMintable()
