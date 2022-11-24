@@ -3,10 +3,10 @@
 <!-- PROJECT NAME -->
 <br />
 <div align="center">
-  <h3 align="center">Miaswap - AMM for NFTs - Smart Contracts</h3>
+  <h3 align="center"Launchpad NFT - Smart Contracts</h3>
 
   <p align="center">
-    Smart contracts of Illumia's AMM for NFTs project
+    Smart contracts used to launchpad NFT project
 </div>
 
 <!-- TABLE OF CONTENTS -->
@@ -40,7 +40,7 @@
 
 # About The Project
 
-This project contains the source code of AMM smart contracts, supports deploying, testing smart contracts and getting information about chain Id, address and abi to help front-end interact with these smart contracts.
+This project contains the source code of Launchpad NFT project, supports deploying, testing smart contracts and getting information about chain Id, address and abi to help front-end interact with these smart contracts.
 
 ## Built With
 
@@ -87,13 +87,6 @@ yarn hardhat deploy
 yarn hardhat test
 ```
 
--   Run staging test:
-    -   To be able to run staging test you need to configure .env file according to <a href="#setup-environment-variables">this instruction</a>.
-
-```
-yarn hardhat test --network goerli
-```
-
 ### Test Coverage
 
 ```
@@ -116,9 +109,9 @@ ETHERSCAN_API_KEY='YOUR_API_KEY'
 
 -   `MAINNET_RPC_URL`: This is url of the mainnet node you're working with. You can get setup with one for free from [Alchemy](https://alchemy.com/?a=673c802981)
 -   `GOERLI_RPC_URL`: This is url of the goerli testnet node you're working with. You can get setup with one for free from [Alchemy](https://alchemy.com/?a=673c802981)
+-   `SEPOLIA_RPC_URL`: This is url of the sepolia testnet node you're working with. You can get setup with one for free from [Infura](https://www.infura.io/)
 -   `PRIVATE_KEY`: The private key of your account (like from [metamask](https://metamask.io/)). **NOTE:** FOR DEVELOPMENT, PLEASE USE A KEY THAT DOESN'T HAVE ANY REAL FUNDS ASSOCIATED WITH IT.
     -   You can [learn how to export it here](https://metamask.zendesk.com/hc/en-us/articles/360015289632-How-to-Export-an-Account-Private-Key).
--   `REPORT_GAS`: Sets to `true` if you want to generate reporter gas file when running test.
 -   `ETHERSCAN_API_KEY`: This is the api key used for smart contract verification on etherscan. You can get one for free here [Etherscan](https://etherscan.io/)
 
 2. Get testnet ETH
@@ -127,10 +120,10 @@ ETHERSCAN_API_KEY='YOUR_API_KEY'
 
 3. Deploy & Verify
 
--   Goerli testnet:
+-   Testnet:
 
 ```
-yarn hardhat deploy --network goerli --tags "main"
+yarn hardhat deploy --network <testnet> --tags "main"
 ```
 
 -   Mainnet:
