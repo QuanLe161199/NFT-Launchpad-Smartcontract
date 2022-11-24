@@ -81,8 +81,6 @@ yarn hardhat deploy
 
 ## Testing
 
--   Run unit test:
-
 ```
 yarn hardhat test
 ```
@@ -116,7 +114,7 @@ ETHERSCAN_API_KEY='YOUR_API_KEY'
 
 2. Get testnet ETH
 
--   You can get testnet eth by mining here [Goerli PoW Faucet](https://goerli-faucet.pk910.de/), or receive from faucets: [Chainlink Faucets](https://faucets.chain.link/), [Goerli Faucet](https://goerlifaucet.com/)
+-   You can get testnet eth by mining here [Faucet Link](https://faucetlink.to/goerli)
 
 3. Deploy & Verify
 
