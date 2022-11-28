@@ -175,16 +175,9 @@ contract ERC721I is IERC721I, ERC721AQueryable, Ownable, ReentrancyGuard {
         return _numberMinted(a);
     }
 
-    function getStageInfo(uint256 index)
-        external
-        view
-        override
-        returns (
-            MintStageInfo memory,
-            uint32,
-            uint256
-        )
-    {
+    function getStageInfo(
+        uint256 index
+    ) external view override returns (MintStageInfo memory, uint32, uint256) {
         if (index >= _mintStages.length) {
             revert("InvalidStage");
         }
@@ -336,12 +329,9 @@ contract ERC721I is IERC721I, ERC721AQueryable, Ownable, ReentrancyGuard {
         _tokenURISuffix = suffix;
     }
 
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        override(ERC721A, IERC721A)
-        returns (string memory)
-    {
+    function tokenURI(
+        uint256 tokenId
+    ) public view override(ERC721A, IERC721A) returns (string memory) {
         if (!_exists(tokenId)) revert URIQueryForNonexistentToken();
 
         string memory baseURI = _currentBaseURI;
@@ -384,27 +374,6 @@ contract ERC721I is IERC721I, ERC721AQueryable, Ownable, ReentrancyGuard {
                 signature
             )
         ) revert InvalidCosignSignature();
-    }
-
-    function getCosignDigestTest(address addr, uint256 num) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(addr, num)).toEthSignedMessageHash();
-    }
-
-    function assertValidCosignTest(uint256 num, bytes memory signature)
-        external
-        view
-        returns (bool)
-    {
-        return
-            SignatureChecker.isValidSignatureNow(
-                msg.sender,
-                getCosignDigestTest(msg.sender, num),
-                signature
-            );
-    }
-
-    function checkSignature(bytes32 hashTest, bytes memory signature) external view returns (bool) {
-        return SignatureChecker.isValidSignatureNow(msg.sender, hashTest, signature);
     }
 
     function getActiveStageFromTimestamp(uint64 timestamp) public view override returns (uint256) {
