@@ -703,19 +703,19 @@ import merkleTree from "../../utils/merkleTree"
                                   }
                               )
 
-                          //   const stageInfo = await erc721I.connect(user).getStageInfo(0)
-                          //   const walletMinted = stageInfo[1]
-                          //   const stageMinted = stageInfo[2]
-                          //   assert.equal(mintArguments[0].toString(), walletMinted.toString())
-                          //   assert.equal(mintArguments[0].toString(), stageMinted.toString())
-                          //   assert.equal(
-                          //       mintArguments[0].toString(),
-                          //       (await erc721I.totalSupply()).toString()
-                          //   )
+                          const stageInfo = await erc721I.connect(user).getStageInfo(0)
+                          const walletMinted = stageInfo[1]
+                          const stageMinted = stageInfo[2]
+                          assert.equal(mintArguments[0].toString(), walletMinted.toString())
+                          assert.equal(mintArguments[0].toString(), stageMinted.toString())
+                          assert.equal(
+                              mintArguments[0].toString(),
+                              (await erc721I.totalSupply()).toString()
+                          )
 
-                          //   for (let i = 0; i < mintArguments[0]; i++) {
-                          //       assert.equal(user.address, await erc721I.ownerOf(i))
-                          //   }
+                          for (let i = 0; i < mintArguments[0]; i++) {
+                              assert.equal(user.address, await erc721I.ownerOf(i))
+                          }
                       })
                   })
                   it("reverts when the user sent not enough ETH", async () => {

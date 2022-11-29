@@ -121,7 +121,7 @@ ETHERSCAN_API_KEY='YOUR_API_KEY'
 -   Testnet:
 
 ```
-yarn hardhat deploy --network <testnet> --tags "main"
+yarn hardhat deploy --network <TESTNET_NAME> --tags "main"
 ```
 
 -   Mainnet:
