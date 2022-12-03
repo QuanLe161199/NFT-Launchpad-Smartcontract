@@ -42,7 +42,7 @@ import { network, deployments, ethers } from "hardhat"
 
                   assert.equal(collectionName, constructorArguments[0])
                   assert.equal(collectionSymbol, constructorArguments[1])
-                  assert.equal(mintable, false)
+                  assert.equal(mintable, true)
                   assert.equal(tokenURISuffix, constructorArguments[2])
                   assert.equal(maxMintableSupply.toString(), constructorArguments[3])
                   assert.equal(globalWalletLimit.toString(), constructorArguments[4])

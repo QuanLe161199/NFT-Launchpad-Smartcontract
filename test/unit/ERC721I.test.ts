@@ -42,7 +42,7 @@ import merkleTree from "../../utils/merkleTree"
 
                   assert.equal(collectionName, erc721IArguments[0])
                   assert.equal(collectionSymbol, erc721IArguments[1])
-                  assert.equal(mintable, false)
+                  assert.equal(mintable, true)
                   assert.equal(tokenURISuffix, erc721IArguments[2])
                   assert.equal(maxMintableSupply.toString(), erc721IArguments[3])
                   assert.equal(globalWalletLimit.toString(), erc721IArguments[4])
@@ -216,7 +216,7 @@ import merkleTree from "../../utils/merkleTree"
               })
 
               describe("setMintable", () => {
-                  const mintable = true
+                  const mintable = false
 
                   it("reverts when the caller isn't the owner", async () => {
                       await expect(
@@ -505,9 +505,6 @@ import merkleTree from "../../utils/merkleTree"
                       ]
                       const price = (await erc721I.getStageInfo(0))[0][0]
                       value = price.mul(mintArguments[0])
-
-                      // set mintable state is true
-                      await erc721I.setMintable(true)
                   })
 
                   it("reverts when mintable state is false", async () => {
@@ -852,8 +849,6 @@ import merkleTree from "../../utils/merkleTree"
                       const price = (await erc721I.getStageInfo(0))[0][0]
                       value = price.mul(mintArguments[0])
 
-                      // set mintable state is true
-                      await erc721I.setMintable(true)
                       await erc721I.setCrossmintAddress(crossmintAccount.address)
                   })
 
@@ -947,9 +942,6 @@ import merkleTree from "../../utils/merkleTree"
               describe("withdraw", () => {
                   let value: BigNumber
                   beforeEach(async () => {
-                      // sets mintable state is true
-                      await erc721I.setMintable(true)
-
                       const currentStage = (await erc721I.getStageInfo(0))[0]
                       value = currentStage[0].mul(currentStage[1])
                       await erc721I
@@ -1020,7 +1012,6 @@ import merkleTree from "../../utils/merkleTree"
                       assert.equal(newBaseURI, setBaseURIEvent!.baseURI)
 
                       // checks a token URI
-                      await erc721I.setMintable(true)
                       const currentStage = (await erc721I.getStageInfo(0))[0]
                       const value = currentStage[0].mul(currentStage[1])
                       await erc721I
