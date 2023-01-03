@@ -90,6 +90,10 @@ yarn hardhat test
 ```
 yarn hardhat coverage
 ```
+### Verify The Deployed Contract Using Frontend
+```
+yarn hardhat verify --constructor-args arguments.ts <CONTRACT_ADDRESS> --network <NETWORK>
+```
 
 # Deployment to a testnet or mainnet
 
@@ -121,7 +125,7 @@ ETHERSCAN_API_KEY='YOUR_API_KEY'
 -   Testnet:
 
 ```
-yarn hardhat deploy --network <TESTNET_NAME> --tags "main"
+yarn hardhat deploy --network <NETWORK> --tags "main"
 ```
 
 -   Mainnet:
@@ -130,6 +134,7 @@ yarn hardhat deploy --network <TESTNET_NAME> --tags "main"
 PRIVATE_KEY=<YOUR_PRIVATE_KEY> yarn hardhat deploy --network mainnet --tags "main"
 history -c
 ```
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
