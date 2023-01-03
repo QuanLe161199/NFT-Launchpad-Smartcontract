@@ -1,4 +1,7 @@
 //SPDX-License-Identifier: MIT
+// ERC721I Contracts v1.0.0
+// Creator: Illumia Labs
+
 pragma solidity 0.8.17;
 
 import "erc721a/contracts/extensions/IERC721AQueryable.sol";

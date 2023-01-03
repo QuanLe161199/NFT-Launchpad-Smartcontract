@@ -1,4 +1,7 @@
-//SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
+// ERC721I Contracts v1.0.0
+// Creator: Illumia Labs
+
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
