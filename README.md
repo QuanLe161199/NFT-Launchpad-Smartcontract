@@ -90,10 +90,6 @@ yarn hardhat test
 ```
 yarn hardhat coverage
 ```
-### Verify The Deployed Contract Using Frontend
-```
-yarn hardhat verify --constructor-args arguments.ts <CONTRACT_ADDRESS> --network <NETWORK>
-```
 
 # Deployment to a testnet or mainnet
 
@@ -133,6 +129,12 @@ yarn hardhat deploy --network <NETWORK> --tags "main"
 ```
 PRIVATE_KEY=<YOUR_PRIVATE_KEY> yarn hardhat deploy --network mainnet --tags "main"
 history -c
+```
+
+# Verify the deployed contract using frontend
+The first contract deployed on a network needs to be verified, and similar contracts are automatically verified.
+```
+yarn hardhat verify --constructor-args arguments.ts <CONTRACT_ADDRESS> --network <NETWORK>
 ```
 
 
